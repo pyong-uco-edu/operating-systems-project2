@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <string>
 #include <iostream>
 
@@ -11,6 +12,12 @@ stats savings_account;
 
 stats th_checking[10];
 stats th_savings[10];
+
+int buffer[BUF_SIZE];
+
+pthread_mutex_t mutex;
+sem_t full;
+sem_t empty;
 
 extern void* operations(void *);
 
@@ -48,6 +55,10 @@ int main(int argc, char **argv) {
 		th_savings[i].balance = 0;
 	}
 
+    pthread_mutex_init(&mutex, NULL);
+	sem_init(&empty, 0, BUF_SIZE);
+	sem_init(&full, 0, 0);
+
     pthread_t threads[10];
 
 	pthread_attr_t attr;
@@ -58,7 +69,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < 10; i++) {
 		params[i] = new parameters;
 		params[i]->loop_count = loop_count;
-		std::string filename = "race_thread_";
+		std::string filename = "thread_";
 		filename += std::to_string(i);
 		filename += ".txt";
 		params[i]->filename = filename;

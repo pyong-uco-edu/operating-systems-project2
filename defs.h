@@ -1,3 +1,7 @@
+#include <string>
+
+const int BUF_SIZE = 5;
+
 struct stats {
     int no_deposits; // # of deposits into the account (not include if rejected)
     int no_withdrawals; // # of withdrawals from the account (not include if rejected)
@@ -8,6 +12,6 @@ struct stats {
 
 struct parameters {
 	int loop_count;
-	char* filename;
+	std::string filename;
     int index;
 };

@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <random>
 #include <fstream>
+#include <semaphore.h>
 
 #include "defs.h"
 
@@ -10,6 +11,12 @@ extern stats savings_account;
 
 extern stats th_checking[10];
 extern stats th_savings[10];
+
+extern int buffer[BUF_SIZE];
+
+extern pthread_mutex_t mutex;
+extern sem_t full;
+extern sem_t empty;
 
 int randomRange(int start, int end) {
     std::random_device rand_dev;
@@ -136,5 +143,4 @@ void* operations(void* p) {
 
     file.close();
     pthread_exit(0);
-    // exit(0);
 }

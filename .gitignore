@@ -1,1 +1,5 @@
 os_bounded_buffer_cpp
+*.txt
+*.o
+p0
+p1
