@@ -135,6 +135,6 @@ void* operations(void* p) {
     file << "- BALANCE:     " << th_savings[params->index].balance << std::endl << std::endl;
 
     file.close();
-    pthread_exit(0);
-    // exit(0);
+    // pthread_exit(0);
+    exit(0);
 }

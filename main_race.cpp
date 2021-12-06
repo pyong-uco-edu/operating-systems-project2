@@ -64,6 +64,10 @@ int main(int argc, char **argv) {
 		params[i]->filename = filename;
 		params[i]->index = i;
 		pthread_create(&threads[i], &attr, operations, params[i]);
+		// pthread_join(threads[i], NULL);
+	}
+
+	for (int i = 0; i < 10; i++) {
 		pthread_join(threads[i], NULL);
 	}
 
@@ -80,4 +84,38 @@ int main(int argc, char **argv) {
     std::cout << "- WITHDRAWALS: " << savings_account.no_withdrawals << std::endl;
     std::cout << "- REJECTED:    " << savings_account.no_rejected << std::endl;
     std::cout << "- BALANCE:     " << savings_account.balance << std::endl << std::endl;
+
+	int check_deposit_sum = 0;
+	int check_withdraw_sum = 0;
+	int check_reject_sum = 0;
+	int save_deposit_sum = 0;
+	int save_withdraw_sum = 0;
+	int save_reject_sum = 0;
+	
+	for (int i = 0; i < 10; i++) {
+		check_deposit_sum += th_checking[i].no_deposits;
+		check_withdraw_sum += th_checking[i].no_withdrawals;
+		check_reject_sum += th_checking[i].no_rejected;
+		save_deposit_sum += th_savings[i].no_deposits;
+		save_withdraw_sum += th_savings[i].no_withdrawals;
+		save_reject_sum += th_savings[i].no_rejected;
+	}
+
+	if (check_deposit_sum != checking_account.no_deposits)
+		std::cout << "Race Condition: Check Deposit " << check_deposit_sum << " - " << checking_account.no_deposits << std::endl;
+
+	if (check_withdraw_sum != checking_account.no_withdrawals)
+		std::cout << "Race Condition: Check Withdrawals " << check_withdraw_sum << " - " << checking_account.no_withdrawals << std::endl;
+
+	if (check_reject_sum != checking_account.no_rejected)
+		std::cout << "Race Condition: Check Rejected " << check_reject_sum << " - " << checking_account.no_rejected << std::endl;
+
+	if (save_deposit_sum != savings_account.no_deposits)
+		std::cout << "Race Condition: Save Deposit " << save_deposit_sum << " - " << savings_account.no_deposits << std::endl;
+
+	if (save_withdraw_sum != savings_account.no_withdrawals)
+		std::cout << "Race Condition: Save Withdrawals " << save_withdraw_sum << " - " << savings_account.no_withdrawals << std::endl;
+
+	if (save_reject_sum != savings_account.no_rejected)
+		std::cout << "Race Condition: Save Rejected " << save_reject_sum << " - " << savings_account.no_rejected << std::endl;
 }

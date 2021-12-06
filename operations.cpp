@@ -12,11 +12,7 @@ extern stats savings_account;
 extern stats th_checking[10];
 extern stats th_savings[10];
 
-extern int buffer[BUF_SIZE];
-
 extern pthread_mutex_t mutex;
-extern sem_t full;
-extern sem_t empty;
 
 int randomRange(int start, int end) {
     std::random_device rand_dev;
@@ -36,47 +32,48 @@ void* operations(void* p) {
     int amount;
 
     for (int i = 0; i < loop; i++) {
+        pthread_mutex_lock(&mutex);
         switch(randomRange(1, 6)) {
             case 1: // deposit into checking account
                 amount = randomRange(50, 100);
-                checking_account.no_deposits++;
-                checking_account.balance += amount;
-                th_checking[params->index].no_deposits++;
-                th_checking[params->index].balance += amount;
+                checking_account.no_deposits = checking_account.no_deposits + 1;
+                checking_account.balance = checking_account.balance + amount;
+                th_checking[params->index].no_deposits = th_checking[params->index].no_deposits + 1;
+                th_checking[params->index].balance = th_checking[params->index].balance + amount;
                 file << "DEPOSIT CHECKING " << amount << std::endl;
                 std::cout << "DEPOSIT CHECKING " << amount << std::endl;
                 break;
             case 2: // withdraw from checking account
                 amount = randomRange(50, 100);
                 if (checking_account.balance >= amount) {
-                    checking_account.no_withdrawals++;
-                    checking_account.balance -= amount;
+                    checking_account.no_withdrawals = checking_account.no_withdrawals + 1;
+                    checking_account.balance = checking_account.balance - amount;
                     file << "WITHDRAWAL CHECKING " << amount << std::endl;
                     std::cout << "WITHDRAWAL CHECKING " << amount << std::endl;
                 } else {
-                    checking_account.no_rejected++;
+                    checking_account.no_rejected = checking_account.no_rejected + 1;
                     file << "WITHDRAWAL CHECKING " << amount << " (REJECTED)" << std::endl;
                     std::cout << "WITHDRAWAL CHECKING " << amount << " (REJECTED)" << std::endl;
                 }
                 break;
             case 3: // deposited into savings account
                 amount = randomRange(100, 150);
-                savings_account.no_deposits++;
-                savings_account.balance += amount;
-                th_savings[params->index].no_deposits++;
-                th_savings[params->index].balance += amount;
+                savings_account.no_deposits = savings_account.no_deposits + 1;
+                savings_account.balance = savings_account.balance + amount;
+                th_savings[params->index].no_deposits = th_savings[params->index].no_deposits + 1;
+                th_savings[params->index].balance = th_savings[params->index].balance + amount;
                 file << "DEPOSIT SAVINGS " << amount << std::endl;
                 std::cout << "DEPOSIT SAVINGS " << amount << std::endl;
                 break;
             case 4: // withdraw from savings account
                 amount = randomRange(100, 150);
                 if (savings_account.balance >= amount) {
-                    savings_account.no_withdrawals++;
-                    savings_account.balance -= amount;
+                    savings_account.no_withdrawals = savings_account.no_withdrawals + 1;
+                    savings_account.balance = savings_account.balance - amount;
                     file << "WITHDRAWAL SAVINGS " << amount << std::endl;
                     std::cout << "WITHDRAWAL SAVINGS " << amount << std::endl;
                 } else {
-                    savings_account.no_rejected++;
+                    savings_account.no_rejected = savings_account.no_rejected + 1;
                     file << "WITHDRAWAL SAVINGS " << amount << " (REJECTED)" << std::endl;
                     std::cout << "WITHDRAWAL SAVINGS " << amount << " (REJECTED)" << std::endl;
                 }
@@ -84,14 +81,14 @@ void* operations(void* p) {
             case 5: // transfer from checking to savings account
                 amount = randomRange(100, 200);
                 if (checking_account.balance >= amount) {
-                    checking_account.no_withdrawals++;
-                    checking_account.balance -= amount;
-                    savings_account.no_deposits++;
-                    savings_account.balance += amount;
+                    checking_account.no_withdrawals = checking_account.no_withdrawals + 1;
+                    checking_account.balance = checking_account.balance - amount;
+                    savings_account.no_deposits = savings_account.no_deposits + 1;
+                    savings_account.balance = savings_account.balance + amount;
                     file << "TRANSFER CHECKING TO SAVINGS " << amount << std::endl;
                     std::cout << "TRANSFER CHECKING TO SAVINGS " << amount << std::endl;
                 } else {
-                    checking_account.no_rejected++;
+                    checking_account.no_rejected = checking_account.no_rejected + 1;
                     file << "TRANSFER CHECKING TO SAVINGS " << amount << " (REJECTED)" << std::endl;
                     std::cout << "TRANSFER CHECKING TO SAVINGS " << amount << " (REJECTED)" << std::endl;
                 }
@@ -99,14 +96,14 @@ void* operations(void* p) {
             case 6: // transfer from savings to checking account
                 amount = randomRange(100, 200);
                 if (savings_account.balance >= amount) {
-                    savings_account.no_withdrawals++;
-                    savings_account.balance -= amount;
-                    checking_account.no_deposits++;
-                    checking_account.balance += amount;
+                    savings_account.no_withdrawals = savings_account.no_withdrawals + 1;
+                    savings_account.balance = savings_account.balance - amount;
+                    checking_account.no_deposits = checking_account.no_deposits + 1;
+                    checking_account.balance = checking_account.balance + amount;
                     file << "TRANSFER SAVINGS TO CHECKING " << amount << std::endl;
                     std::cout << "TRANSFER SAVINGS TO CHECKING " << amount << std::endl;
                 } else {
-                    savings_account.no_rejected++;
+                    savings_account.no_rejected = savings_account.no_rejected + 1;
                     file << "TRANSFER SAVINGS TO CHECKING " << amount << " (REJECTED)" << std::endl;
                     std::cout << "TRANSFER SAVINGS TO CHECKING " << amount << " (REJECTED)" << std::endl;
                 }
@@ -114,6 +111,7 @@ void* operations(void* p) {
             default:
                 break;
         }
+        pthread_mutex_unlock(&mutex);
     }
     std::cout << std::endl << "---THREAD [" << params->index << "] STATS---" << std::endl;
     std::cout << "CHECKING ACCOUNT" << std::endl;
